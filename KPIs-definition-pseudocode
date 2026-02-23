@@ -1,0 +1,44 @@
+function defineContextSpecificKPIs(city_context, kpi_catalogue):
+
+    # STEP 1: Define strategic vision and prioritize thematic areas
+    # Purpose: Ensure KPI selection aligns with long-term urban goals
+    strategic_vision = extractStrategicVision(city_context)
+    thematic_areas = identifyThematicAreas(strategic_vision)
+    weighted_themes = applyAHP(thematic_areas)
+    prioritized_themes = selectTopThemes(weighted_themes)
+
+    # STEP 2: Define operational objectives and KPI groups
+    # Purpose: Translate strategic vision into measurable objectives
+    operational_objectives = defineOperationalObjectives(prioritized_themes)
+    kpi_groups = mapObjectivesToKPIGroups(operational_objectives)
+    weighted_groups = applyAHP(kpi_groups)
+    prioritized_groups = selectTopGroups(weighted_groups)
+
+    # STEP 3: Specify requirements and operational scenarios
+    # Purpose: Filter KPIs based on feasibility and context constraints
+    constraints = assessUrbanConstraints(city_context)
+    scenarios = defineOperationalScenarios(city_context)
+    requirements = buildRequirementFilters(constraints, scenarios)
+
+    # STEP 4: Select relevant KPIs from the catalogue
+    # Purpose: Build a tailored KPI set aligned with goals and feasibility
+    candidate_kpis = []
+    for kpi in kpi_catalogue:
+        if matchesThemes(kpi, prioritized_themes) and
+           matchesGroups(kpi, prioritized_groups) and
+           satisfiesRequirements(kpi, requirements):
+            score = evaluateKPI(kpi, strategic_vision, constraints)
+            candidate_kpis.append((kpi, score))
+
+    selected_kpis = selectTopKPIs(candidate_kpis)
+
+    # STEP 5: Refine, validate, and extend KPI set
+    # Purpose: Remove redundancy, ensure robustness, and enable adaptability
+    refined_kpis = removeRedundancy(selected_kpis)
+    validated_kpis = validateWithStakeholders(refined_kpis)
+
+    if needsIteration(validated_kpis, city_context):
+        # Restart process to adapt to new goals or data
+        return defineContextSpecificKPIs(city_context, kpi_catalogue)
+
+    return validated_kpis
