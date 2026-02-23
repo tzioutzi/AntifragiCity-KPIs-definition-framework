@@ -1,0 +1,286 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Urban Mobility KPI Definition API",
+    "version": "1.0.0",
+    "description": "API that automates the five–step process described in `defineContextSpecificKPIs` to create, refine and validate context–specific KPIs for urban-mobility management."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "paths": {
+    "/kpi-catalogue": {
+      "get": {
+        "summary": "Retrieve the global KPI catalogue",
+        "operationId": "getKpiCatalogue",
+        "responses": {
+          "200": {
+            "description": "Complete KPI catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KPI"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kpis/context-specific/define": {
+      "post": {
+        "summary": "Generate a validated, context-specific KPI set",
+        "operationId": "defineContextSpecificKPIs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextSpecificKPIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validated, de-duplicated, stakeholder-approved KPIs for the given city context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPISelectionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kpis/context-specific/{cityId}": {
+      "get": {
+        "summary": "Fetch the latest validated KPIs for a city",
+        "operationId": "getCityKPIs",
+        "parameters": [
+          {
+            "name": "cityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier of the city context"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Previously generated validated KPIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPISelectionResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No KPI set found for the specified city",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ContextSpecificKPIRequest": {
+        "type": "object",
+        "properties": {
+          "cityContext": {
+            "$ref": "#/components/schemas/CityContext"
+          },
+          "kpiCatalogue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KPI"
+            }
+          }
+        },
+        "required": [
+          "cityContext",
+          "kpiCatalogue"
+        ]
+      },
+      "CityContext": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the city"
+          },
+          "name": {
+            "type": "string"
+          },
+          "strategicVision": {
+            "type": "string",
+            "description": "Long-term urban strategy statement"
+          },
+          "demographics": {
+            "type": "object",
+            "description": "Population, density, socio-economic indicators",
+            "additionalProperties": true
+          },
+          "sensorInventory": {
+            "type": "array",
+            "description": "Traffic sensors, GPS feeds, IoT devices available in the city",
+            "items": {
+              "$ref": "#/components/schemas/Sensor"
+            }
+          },
+          "constraints": {
+            "type": "object",
+            "description": "Regulatory, budgetary, geographical and data-quality constraints",
+            "additionalProperties": true
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "Sensor": {
+        "type": "object",
+        "properties": {
+          "sensorId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "e.g., loop-detector, camera, GPS, cellular, BLE"
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lon": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "lat",
+              "lon"
+            ]
+          },
+          "coverage": {
+            "type": "string",
+            "description": "Spatial coverage area description"
+          }
+        },
+        "required": [
+          "sensorId",
+          "type",
+          "location"
+        ]
+      },
+      "KPI": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "description": "High-level thematic area (e.g., Safety, Sustainability)"
+          },
+          "group": {
+            "type": "string",
+            "description": "Operational objective group (e.g., Traffic Efficiency)"
+          },
+          "dataSource": {
+            "type": "string",
+            "description": "Primary data source used to compute this KPI"
+          },
+          "formula": {
+            "type": "string",
+            "description": "Mathematical definition"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "unit",
+          "theme",
+          "group"
+        ]
+      },
+      "KPISelectionResult": {
+        "type": "object",
+        "properties": {
+          "validatedKpis": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KPI"
+            }
+          },
+          "iterationRequired": {
+            "type": "boolean",
+            "description": "Indicates whether the KPI set needs further iterations due to updated city objectives or data availability"
+          }
+        },
+        "required": [
+          "validatedKpis"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    }
+  }
+}
